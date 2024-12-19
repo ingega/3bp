@@ -492,10 +492,16 @@ def check_init_tickers(ticker):
             escribirlog(msj)
             miMail(msj)
             protect()
-    else:
-        if Abiertas['numero'] == 0:
+    else:  # there's no acative orde, but maybe is a double bet system, depends on open orders
+        if Abiertas['numero'] == 0: # no active, no opens, remove it from orders
             msj = "system doesn't have open or in orders, this is an initial system "
             escribirlog(msj)
+            order=Order(ticker=ticker)
+            order.del_order()
+            # also in ticker
+            tk = Ticker(ticker=ticker)
+            if ticker in tk.read_ticker():  # maybe is in order, but not in ticker
+                tk.del_ticker()
         elif Abiertas['numero'] == 2:
             # son las iniciales a la espera de abrirse, se manda a checarApertura
             checkInit()
