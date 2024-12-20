@@ -237,6 +237,8 @@ def tie_exit(ticker):
     # we must update the dateOut and priceOut
     order=Order(ticker=ticker)
     order.update_order(dateOut=time.time(),priceOut=cierre['priceOut'])
+    # and finally cancel openOrders
+    cancelarOrdenes(ticker)
     # and return the profit
     return ganancia
 
@@ -245,32 +247,34 @@ def make_exit(ticker, adjust, outcome):
     # ok once the order is execute, we have a price, so, let's update
     order = Order(ticker=ticker)
     data_order = order.read_order()[ticker]
-    price_out=0
+    # in every case we need the side, priceIn and priceOut, and profit of course
+    price_in = data_order['priceIn']
+    price_out = data_order['priceOut']
+    side = data_order['side']
+    if side == "BUY":
+        profit = (price_out-price_in) / price_in
+    else:
+        profit = (price_in - price_out) / price_in
+    profit -= adjust
     # we must check if is direct or indirect bet
     if outcome=='TP':
         if adjust == 0:
-            profit = data.bet - 0.0008
             outcome = "direct TP"
         elif adjust > 0:
-            profit = data.tp - 0.0008
             outcome = "Indirect TP"
         else:
             profit = 0
             outcome = f"Incongruent value {adjust}"
-        price = checarOrden(ticker, data_order['orderTP'])
-        price_out = price['precio']
     elif outcome=='SL':
-        profit = -adjust
+        profit = -adjust  # in sl the adjust is already calculated
         outcome = "sl"
-        price = checarOrden(ticker, data_order['orderSL'])
-        price_out = price['precio']
     else: # there's only tie left
         profit=adjust  # in tie we use this parameter for profit
-    msj = f"the outcome is {outcome}, call exit "
+    msj = f"the outcome is {outcome}, data are priceIn {price_in}, priceOut: {price_out} side {side}, profit {profit} call exit "
     escribirlog(msj)
     # before get the exit data, is necesarie update the dateOut
     if outcome!='tie':  # otherwise is not necesary
-        order.update_order(dateOut=time.time(),priceOut=price_out)
+        order.update_order(dateOut=time.time())
     datosSalida(ticker,profit, outcome)
 
 def order_not_found(ticker,orderId):
@@ -321,28 +325,33 @@ def protect():
                         status_sl = sl_order['status']
                     if status_sl == 'FILLED':  # well, in this case, we need adjust the loss and call establecerOrdenes with orderTP
                         # if we want presicion, we need the side, and the priceOut, this way we have more acurate the outcomes
-                        priceIn = actual_orders[ticker]['priceIn']
-                        priceOut = sl_order['precio']
-                        side = actual_orders[ticker]['side']
-                        adjust = actual_orders[ticker]['adjust']
-                        if side == "BUY":
-                            profit = (priceOut - priceIn) / priceIn
-                        else:
-                            profit = (priceIn - priceOut) / priceIn
-                        # well, profit is always negative, so, let's convert it into a positive
-                        profit = abs(profit)
+                        priceIn = actual_orders[ticker]['priceIn']  # this is the preview price
+                        priceOut = sl_order['precio']  # this is the price executed in stop_market
+                        side = actual_orders[ticker]['side']  # this is the side for loss
+                        adjust = actual_orders[ticker]['adjust']  # preview adjust
+                        # let's get the loss profit
+                        profit = abs((priceOut-priceIn)/priceIn) # is absolute, don't matter the side
                         # need the order pointing to a ticker
                         order_sl=Order(ticker=ticker)
                         # if is the first sl, we need to update the epochIn
                         if adjust == 0: # the original bet change the adjust value
                             order_sl.update_order(epochIn=time.time())
                         adjust += profit + 0.0008
+                        # ok now we gonna flip the position, and also the priceOut now is the priceIn
+                        if side == 'BUY':
+                            side = "SELL"
+                        else:
+                            side = "BUY"
                         # update in orders
-                        order_sl.update_order(adjust=adjust)
+                        order_sl.update_order(adjust=adjust, side=side, priceIn=priceOut)
                         if adjust >= data.slmax: # see you later aligator
+                            # we need to close the last operation
+                            profit = tie_exit(ticker)
+                            # update adjust
+                            adjust += profit
                             # in order to get the last version of order, let's read it again
                             order=Order(ticker=ticker)
-                            make_exit(ticker, order.read_order()[ticker]['adjust'],'SL')
+                            make_exit(ticker, adjust,'SL')
                             break
                         # before of orderStablish, send the mail
                         msg = f'{ticker} fall in sl, the side was {side} and the adjust was {profit}, the total adjust is {adjust} '
@@ -357,11 +366,16 @@ def protect():
                     else:
                         status_tp=tp_order['status']
                     if status_tp=='FILLED':  # winner winner chicken dinner
+                        # we need to update the priceOut, in limit orders are the 'precio' field
+                        price_out=tp_order['precio']
+                        date_out=time.time()  # the exactly is in tp_order data
+                        # update order
+                        order=Order(ticker=ticker)
+                        order.update_order(priceOut=price_out, dateOut=date_out)
                         make_exit(ticker,actual_orders[ticker]['adjust'],'TP')
                         # cancel the sl order and exit
                         cancelarOrdenes(ticker)
                         break
-
                         # in Exit, the order and ticker will be removed, so any action is necesarie
                     # now wee need to review the time ellapsed for tie
                     r=order.read_order()[ticker]
@@ -376,8 +390,6 @@ def protect():
                             adjust=r['adjust']
                             profit -= adjust
                             make_exit(ticker,profit,"tie")
-                            # and finally cancel openOrders
-                            cancelarOrdenes(ticker)
                 # after review all orders, we need to inform about the function status, but also review if any ticker
                 # get the 3bp
                 review()

@@ -8,7 +8,7 @@ parent_dir = current_dir.parent
 
 # variables and another stuf
 entrada=0.5   # ths is the minimum qty of money to use
-autoentrada=True
+autoentrada=False
 porcentajeentrada=0.075  #Ojo es 0.0492 en 25x pero para que no falle el minimal notional lo ponemos en 6%
 leverage=20
 
