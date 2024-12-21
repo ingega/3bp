@@ -267,6 +267,9 @@ def make_exit(ticker, adjust, outcome):
             outcome = f"Incongruent value {adjust}"
     elif outcome=='SL':
         profit = -adjust  # in sl the adjust is already calculated
+        msg = f'{ticker} fall in sl, the side was {side} and the adjust was {profit}, the total adjust is {adjust} but this is in ake_exit '
+        escribirlog(msg)
+        miMail(msg)
         outcome = "sl"
     else: # there's only tie left
         profit=adjust  # in tie we use this parameter for profit
@@ -349,8 +352,11 @@ def protect():
                             profit = tie_exit(ticker)
                             # update adjust
                             adjust += profit
-                            # in order to get the last version of order, let's read it again
-                            order=Order(ticker=ticker)
+                            # for debug matters
+                            msg = f'{ticker} go to sl, the side was {side} and the adjust was {profit}, the total adjust is {adjust} '
+                            escribirlog(msg)
+                            miMail(msg)
+
                             make_exit(ticker, adjust,'SL')
                             break
                         # before of orderStablish, send the mail
