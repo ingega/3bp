@@ -168,6 +168,7 @@ key.py
 balance.txt
 config.txt
 entries.csv
+entries.xlsx
 errorlog.txt
 log.txt
 order.txt

@@ -141,7 +141,7 @@ def error_close(side, ticker):
     actualOrder['priceOut'] = cierre['priceOut']
     actualOrder['side']=side
     escribirDic(path + "order.txt", actualOrder)
-    datosSalida(ganancia, "error")
+    datosSalida(ticker, ganancia, "error")
 
 @print_func_text
 def establecerOrdenes(orden, ticker): # order = 0 is for initial bet
