@@ -169,6 +169,7 @@ balance.txt
 config.txt
 entries.csv
 entries.xlsx
+entries(1).xlsx
 errorlog.txt
 log.txt
 order.txt
