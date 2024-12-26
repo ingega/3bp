@@ -71,10 +71,10 @@ def main():
             print("just in the principal loop")
             while True: # it's an error prevent
                 time.sleep(data.time)  # with this, we can get all the volatibility path, also prevent loops between out/in
-                every_time(mins=5,secs=45)
+                every_time(hours=data.hours,mins=data.minutes,secs=data.seconds)
                 # the 16th hour don't be used, is timing filtering
                 hour=time.gmtime().tm_hour
-                if hour==25:
+                if hour==15:
                     msg=f"the 16th hour is not allowed for strategy, the gmtime is {time.asctime(time.gmtime())} "
                     escribirlog(msg)
                     miMail(msg)
