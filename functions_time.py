@@ -104,7 +104,7 @@ def every_time(hours=0,mins=0,secs=0):
                 return
             while True:
                 hour = time.gmtime().tm_hour
-                hour %= 24
+                hour %= data.hours
                 if hour == hours - 1:
                     break
                 else:
