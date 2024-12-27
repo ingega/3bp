@@ -13,8 +13,8 @@ porcentajeentrada=0.075  #Ojo es 0.0492 en 25x pero para que no falle el minimal
 leverage=20
 
 timeframe=3 #esta variable controla cada cuanto se checan las órdenes
-slmax=0.08  #esta variable controla la pérdida máxima
-tp=0.08
+slmax=0.1  #esta variable controla la pérdida máxima
+tp=0.1
 sl=0.01
 
 path=""
