@@ -1,3 +1,5 @@
+import time
+
 from functions_time import *
 import data
 from functions_strategy import miMail, BinanceAPIException
@@ -13,17 +15,11 @@ path = data.path
 @print_func_text
 def inform(the_data, filename=None):  # to inform about the values in entries, and every 4hrs send a mail
     # inform
-    msg = f"there's no entry yet, the values are {the_data}"
+    msg = f"there's no entry yet, the values are {the_data}, gmtime is {time.gmtime()}"
     escribirlog(msg)
-    hours = time.gmtime().tm_hour
-    hours %= data.hours
-    minutes = time.gmtime().tm_min
-    minutes %= data.minutes
-    if minutes == data.minutes - 1 and hours == data.hours - 1:  # inform
-        msg = f"System is in main while, there's no entries yet, hours and minutes are {hours}, {minutes}"
-        escribirlog(msg)
-        miMail(msg,filename)
-        time.sleep(10)  # avoid loop
+    miMail(msg,filename)
+    pause = 60 - data.seconds
+    time.sleep(pause + 1)  # avoid loop
 
 @print_func_text
 def make_3bp_entries(entries):
