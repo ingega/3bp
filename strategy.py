@@ -70,8 +70,8 @@ def main():
                 every_time(hours=data.hours,mins=data.minutes,secs=data.seconds)
                 # the 16th hour don't be used, is timing filtering
                 hour=time.gmtime().tm_hour
-                if hour==15:
-                    msg=f"the 16th hour is not allowed for strategy, the gmtime is {time.asctime(time.gmtime())} "
+                if hour == data.forbiden_hour:
+                    msg=f"the {data.forbiden_hour}th hour is not allowed for strategy, the gmtime is {time.asctime(time.gmtime())} "
                     escribirlog(msg)
                     miMail(msg)
                 else:
