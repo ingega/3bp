@@ -34,7 +34,7 @@ debug_mode=False
 # parameters necesaries for estrategy
 # gap=0.03
 # distance=0.015
-forbiden_hour = 25
+forbidden_hour = 25
 bet=0.04
 time=20  # this is for prevent loops in each4hrs()
 a_size = 0.01
