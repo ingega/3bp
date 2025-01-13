@@ -158,8 +158,10 @@ def get_all_pairs_opor():
     # so, let's send in csv by mail, but this function only create (re-writting) the csv file
     # the file is named by YY-MM-DD-HH-all-data.csv
     file_name=f'{time.gmtime().tm_year}-{time.gmtime().tm_mon}-{time.gmtime().tm_mday}-{time.gmtime().tm_hour}.csv'
+    # the complete filepath include the pathgan directory
+    file_name = data.pathGan + file_name
     if data.debug_mode:  # in false, no file is created
-        all.to_csv(data.pathGan+file_name,columns=None)
+        all.to_csv(file_name,columns=None)
     return {'df_in':df_in,'path':file_name}
 
 

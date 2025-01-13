@@ -29,7 +29,7 @@ pausa=10  # son los segundos que el sistema necesita para no empalmar las lectur
 
 barras=1440   # son los minutos que hacen que el sistema se vaya  a empate
 
-debug_mode=False
+debug_mode=True
 
 # parameters necesaries for estrategy
 # gap=0.03
