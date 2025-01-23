@@ -255,7 +255,8 @@ def make_exit(ticker, adjust, outcome):
         profit = (price_out-price_in) / price_in
     else:
         profit = (price_in - price_out) / price_in
-    profit -= adjust
+    # remove the last comission too
+    profit -= adjust + 0.0008
     # we must check if is direct or indirect bet
     if outcome=='TP':
         if adjust == 0:
