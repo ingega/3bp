@@ -337,9 +337,13 @@ def protect():
                         profit = abs((priceOut-priceIn)/priceIn) # is absolute, don't matter the side
                         # need the order pointing to a ticker
                         order_sl=Order(ticker=ticker)
-                        # if is the first sl, we need to update the epochIn
-                        if adjust == 0: # the original bet change the adjust value
+                        # well, if bet_continue we always must re-set the epoch
+                        if data.bet_continue:
                             order_sl.update_order(epochIn=time.time())
+                        else:
+                            # if is the first sl, we need to update the epochIn
+                            if adjust == 0: # the original bet change the adjust value
+                                order_sl.update_order(epochIn=time.time())
                         adjust += profit + 0.0008
                         # ok now we gonna flip the position, and also the priceOut now is the priceIn
                         if side == 'BUY':

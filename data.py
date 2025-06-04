@@ -47,5 +47,6 @@ minutes = 60
 seconds = 40
 
 interval="4h"
+bet_continue = True  # this parameter set the epoch in sl
 
 reverse=False  # in this system is doesn't matter because is double bet
