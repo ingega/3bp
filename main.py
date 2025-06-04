@@ -128,40 +128,57 @@ def pairs():
     return pairs
 
 def get_all_pairs_opor():
-    datahandler=DataHandler(key.api_key, key.api_secret)
-    p=pd.read_csv('ticks.csv',header=None)
-    p=p.to_dict(orient='records')
-    cols=['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
-       'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
-       'taker_buy_quote_asset_volume', 'ignore', 'date', 'hour', 'ticker',
-       'precision', 'side', 'size']
-    all=pd.DataFrame(columns=cols) # empty df
-    size=data.a_size
-    B_size=data.b_size
-    C_size=data.c_size
-    df_in=pd.DataFrame(columns=cols)
+    datahandler = DataHandler(key.api_key, key.api_secret)
+    p = pd.read_csv('ticks.csv', header=None)
+    p = p.to_dict(orient='records')
+
+    cols = ['timestamp', 'open', 'high', 'low', 'close', 'volume', 'close_time',
+            'quote_asset_volume', 'number_of_trades', 'taker_buy_base_asset_volume',
+            'taker_buy_quote_asset_volume', 'ignore', 'date', 'hour', 'ticker',
+            'precision', 'side', 'size']
+
+    all_df = pd.DataFrame(columns=cols)
+    df_in = pd.DataFrame(columns=cols)
+
+    size = data.a_size
+    B_size = data.b_size
+    C_size = data.c_size
+
+    individual_df = pd.DataFrame()  # empty dataframe
     for r in p:
         try:
-            df = datahandler.get_binance_data(symbol=r[0],interval=data.interval,limit=3)
-            df['ticker']=r[0]
-            filtered_df = df.loc[(df['size'].shift(2) > size) & (df['size'].shift(1) < df['size'].shift(2) * B_size)
-                                 & (df['size'] > df['size'].shift(2) * C_size) &
-                                 ((df['side'].shift(1) != df['side'].shift(2)) & (df['side'] != df['side'].shift(1))) & (
-                                             df['hour'] != 16)]
-            all = pd.concat([all, df], ignore_index=True)
-            if len(filtered_df)>0:
-                df_in = pd.concat([df_in, filtered_df], ignore_index=True)
-        except:
-            msg=f'there\'s an error ocurred when tried to get the info of {r[0]} gmtime: {time.asctime(time.gmtime())}'
-            print(msg)
-    # at the very end, verify all this info is needed, so, let's return the alls, and df_in data
-    # so, let's send in csv by mail, but this function only create (re-writting) the csv file
-    # the file is named by YY-MM-DD-HH-all-data.csv
-    file_name=f'{time.gmtime().tm_year}-{time.gmtime().tm_mon}-{time.gmtime().tm_mday}-{time.gmtime().tm_hour}.csv'
-    # the complete filepath include the pathgan directory
-    file_name = data.pathGan + file_name
-    if data.debug_mode:  # in false, no file is created
-        all.to_csv(file_name,columns=None)
-    return {'df_in':df_in,'path':file_name}
+            df = datahandler.get_binance_data(symbol=r[0], interval=data.interval, limit=3)
+            df['ticker'] = r[0]
+
+            # Append to all data regardless of filtering
+            all_df = pd.concat([all_df, df], ignore_index=True)
+
+            if len(df) == 3:
+                s0, s1, s2 = df.iloc[0]['size'], df.iloc[1]['size'], df.iloc[2]['size']
+                side0, side1, side2 = df.iloc[0]['side'], df.iloc[1]['side'], df.iloc[2]['side']
+
+                if (
+                    s0 > size and
+                    s1 < s0 * B_size and
+                    s2 > s0 * C_size and
+                    side1 != side0 and
+                    side1 != side2
+                ):
+                    # we need just the last record
+                    individual_df = df.iloc[[-1]]
+                    df_in = pd.concat([df_in, individual_df], ignore_index=True)
+
+        except Exception as e:
+            print(f"[ERROR] Could not process {r[0]} at {time.asctime(time.gmtime())}: {e}")
+
+    # Save all data if in debug mode
+    file_name = f"{time.gmtime().tm_year}-{time.gmtime().tm_mon}-{time.gmtime().tm_mday}-{time.gmtime().tm_hour}.csv"
+    file_path = data.pathGan + file_name
+
+    if data.debug_mode:
+        all_df.to_csv(file_path, index=False)
+
+    return {'df_in': df_in, 'path': file_path}
+
 
 

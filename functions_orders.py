@@ -484,8 +484,13 @@ def mandarOrdenMercado(simbolo,posicion,cantidad, checar=False):
 
 def checarOrdenAdentro(ticker):
     from functions import cliente
-    laOrden=cliente.futures_position_information(symbol=ticker)[0]
-    cantidad=float(laOrden['positionAmt'])
+    laOrden=cliente.futures_position_information(symbol=ticker)
+    cantidad = 0
+    price_in = 0
+    if len(laOrden) > 0:
+        laOrden=laOrden[0]
+        price_in = float(laOrden['entryPrice'])
+        cantidad = float(laOrden['positionAmt'])
     if cantidad!=0:
         if cantidad<0:
             posicion="SELL"
@@ -500,7 +505,7 @@ def checarOrdenAdentro(ticker):
     salida={
         'ticker':ticker,
         'cantidad':abs(cantidad),
-        'precioIn':float(laOrden['entryPrice']),
+        'precioIn':price_in,
         'posicion':posicion,
         'posicionCierre':posicionCierre,
     }
